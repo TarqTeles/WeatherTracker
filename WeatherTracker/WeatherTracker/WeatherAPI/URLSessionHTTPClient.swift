@@ -39,4 +39,13 @@ public final class URLSessionHTTPClient: HTTPClient {
         task.resume()
         return URLSessionTaskWrapper(wrapped: task)
     }
+    
+    public func get(from url: URL) async -> HTTPClient.Result {
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            return .success((data, response as! HTTPURLResponse))
+        } catch {
+            return .failure(error)
+        }
+    }
 }

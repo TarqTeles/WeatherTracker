@@ -8,7 +8,7 @@
 import Foundation
 
 public final class WeatherEndpoint {
-    internal static let baseURLString = "http://api.weatherapi.com/v1"
+    internal static let baseURLString = "https://api.weatherapi.com/v1"
     internal static let baseURL = URL(string: baseURLString)!
     internal static let apiKey = "5665f5bc10864d60a2a153323242211"
     internal static let searchLocations = "search.json"
