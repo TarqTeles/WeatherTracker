@@ -17,7 +17,26 @@ struct ContentView: View {
         NavigationStack {
             VStack {
                 if let current = main.currentWeather {
-                    
+                    VStack {
+                        current.icon
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 173.0, height: 173.0, alignment: .center)
+                        
+                        Text(current.locationName)
+                            .font(.headline)
+                            .padding(.bottom, 2.0)
+                        
+                        Text(current.temperatureCelsius)
+                            .font(.largeTitle)
+                            .fontWeight(.semibold)
+                            .scaleEffect(1.5)
+                            .padding(.leading)
+
+
+                        Spacer()
+                    }
+                    .padding(.top, 50.0)
                 } else {
                     List {
                         ForEach(main.availableLocations) { location in
@@ -42,12 +61,14 @@ struct ContentView: View {
                                     .frame(width: 123.0, height: 123.0, alignment: .center)
                                     .padding(.trailing)
                             }
+                            .onTapGesture(perform: { main.currentWeather = location })
                         }
                         .listRowBackground(lightGray)
                     }
                     .listRowSpacing(20.0)
                 }
             }
+            .animation(.easeInOut, value: main.currentWeather == nil)
             .searchable(text: $main.seachString, placement: .toolbar, prompt: "Search locations")
         }
     }
