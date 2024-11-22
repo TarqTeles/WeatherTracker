@@ -9,14 +9,22 @@ import SwiftUI
 
 @main
 struct WeatherTrackerApp: App {
-    let fetcher = WeatherFetcher()
+    let client: HTTPClient
+    let main: MainViewModel
+    let fetcher: WeatherFetcher
+
+    init() {
+        client = URLSessionHTTPClient(session: URLSession(configuration: .ephemeral))
+        main = MainViewModel()
+        fetcher = WeatherFetcher(client: client, viewModel: main)
+    }
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(main: main)
                 .task {
-                    try? await fetcher.getCurrentWeather(for: "London")
-                    _ = print(fetcher.currentWeather?.tempC)
+                    try? await fetcher.getLocations(for: "Lond")
+                    _ = print(main.availableLocations.count)
                 }
         }
     }

@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-@Observable class MainViewModel {
-    var currentWeather: CurrentWeather?
-    var availableLocations: [CurrentWeather]
+@Observable public class MainViewModel {
+    var currentWeather: WeatherViewModel?
+    var availableLocations: [WeatherViewModel]
     var seachString: String = ""
     
-    init(currentWeather: CurrentWeather? = nil, availableLocations: [CurrentWeather] = []) {
+    init(currentWeather: WeatherViewModel? = nil, availableLocations: [WeatherViewModel] = []) {
         self.currentWeather = currentWeather
         self.availableLocations = availableLocations
     }

@@ -68,14 +68,14 @@ public struct Current: Codable {
     let isDay: Int
     let condition: Condition
     let windMph, windKph: Double
-    let windDegree: Int
+    let windDegree: Double
     let windDir: String
-    let pressureMB: Int
+    let pressureMB: Double
     let pressureIn: Double
-    let precipMm, precipIn, humidity, cloud: Int
+    let precipMm, precipIn, humidity, cloud: Double
     let feelslikeC, feelslikeF, windchillC, windchillF: Double
     let heatindexC, heatindexF, dewpointC, dewpointF: Double
-    let visKM, visMiles, uv: Int
+    let visKM, visMiles, uv: Double
     let gustMph, gustKph: Double
     
     enum CodingKeys: String, CodingKey {
@@ -137,14 +137,14 @@ extension Current {
         condition: Condition? = nil,
         windMph: Double? = nil,
         windKph: Double? = nil,
-        windDegree: Int? = nil,
+        windDegree: Double? = nil,
         windDir: String? = nil,
-        pressureMB: Int? = nil,
+        pressureMB: Double? = nil,
         pressureIn: Double? = nil,
-        precipMm: Int? = nil,
-        precipIn: Int? = nil,
-        humidity: Int? = nil,
-        cloud: Int? = nil,
+        precipMm: Double? = nil,
+        precipIn: Double? = nil,
+        humidity: Double? = nil,
+        cloud: Double? = nil,
         feelslikeC: Double? = nil,
         feelslikeF: Double? = nil,
         windchillC: Double? = nil,
@@ -153,9 +153,9 @@ extension Current {
         heatindexF: Double? = nil,
         dewpointC: Double? = nil,
         dewpointF: Double? = nil,
-        visKM: Int? = nil,
-        visMiles: Int? = nil,
-        uv: Int? = nil,
+        visKM: Double? = nil,
+        visMiles: Double? = nil,
+        uv: Double? = nil,
         gustMph: Double? = nil,
         gustKph: Double? = nil
     ) -> Current {

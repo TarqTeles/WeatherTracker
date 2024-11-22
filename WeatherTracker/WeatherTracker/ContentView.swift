@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    let main: MainViewModel
+
     var body: some View {
         VStack {
             Image(systemName: "globe")
@@ -16,9 +18,15 @@ struct ContentView: View {
             Text("Hello, world!")
         }
         .padding()
+        
+        List {
+            ForEach(main.availableLocations) { location in
+                Text(location.locationName)
+            }
+        }
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(main: MainViewModel())
 }
