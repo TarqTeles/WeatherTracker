@@ -35,14 +35,11 @@ public final class WeatherFetcher {
                         weathers.append(vm)
                     }
                 } catch {
-                    print("error1: \(error)")
                     throw error
                 }
             case let .failure(error):
-                print("error2: \(error)")
                 throw error
         }
-        print("got \(weathers.count) locations")
         viewModel.availableLocations = weathers
     }
     
@@ -57,7 +54,6 @@ public final class WeatherFetcher {
         
         switch result {
             case let .success((data, response)):
-                print("sucess fetching location: \(loc)")
                 guard response.statusCode == isOK200 else { throw InvalidResponseError() }
                 do {
                     let currentWeather = try CurrentWeather(data: data)
@@ -65,7 +61,7 @@ public final class WeatherFetcher {
                     print("preparing viewModel for \(currentWeather.location.name)")
                     return WeatherViewModel(currentWeather: currentWeather, icon: image)
                 } catch {
-                    print(String(data: data, encoding: .utf8))
+                    print(String(data: data, encoding: .utf8) ?? "problem decoding JSON")
                     throw error
                 }
             case let .failure(error):

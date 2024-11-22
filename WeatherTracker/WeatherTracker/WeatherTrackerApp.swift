@@ -24,7 +24,6 @@ struct WeatherTrackerApp: App {
             ContentView(main: main)
                 .task {
                     try? await fetcher.getLocations(for: "Lond")
-                    _ = print(main.availableLocations.count)
                 }
         }
     }
