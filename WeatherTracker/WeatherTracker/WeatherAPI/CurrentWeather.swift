@@ -9,7 +9,7 @@
 import Foundation
 
 public struct CurrentWeather: Codable {
-    let location: Location
+    let location: WeatherLocation
     let current: Current
 }
 
@@ -32,7 +32,7 @@ extension CurrentWeather {
     }
     
     func with(
-        location: Location? = nil,
+        location: WeatherLocation? = nil,
         current: Current? = nil
     ) -> CurrentWeather {
         return CurrentWeather(
@@ -256,6 +256,72 @@ extension Condition {
     }
 }
 
+// MARK: - WeatherLocation
+public struct WeatherLocation: Codable {
+    let name, region, country: String
+    let lat, lon: Double
+    let tzID: String
+    let localtimeEpoch: Int
+    let localtime: String
+    
+    enum CodingKeys: String, CodingKey {
+        case name, region, country, lat, lon
+        case tzID = "tz_id"
+        case localtimeEpoch = "localtime_epoch"
+        case localtime
+    }
+}
+
+// MARK: WeatherLocation convenience initializers and mutators
+
+extension WeatherLocation {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(WeatherLocation.self, from: data)
+    }
+    
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+    
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+    
+    func with(
+        name: String? = nil,
+        region: String? = nil,
+        country: String? = nil,
+        lat: Double? = nil,
+        lon: Double? = nil,
+        tzID: String? = nil,
+        localtimeEpoch: Int? = nil,
+        localtime: String? = nil
+    ) -> WeatherLocation {
+        return WeatherLocation(
+            name: name ?? self.name,
+            region: region ?? self.region,
+            country: country ?? self.country,
+            lat: lat ?? self.lat,
+            lon: lon ?? self.lon,
+            tzID: tzID ?? self.tzID,
+            localtimeEpoch: localtimeEpoch ?? self.localtimeEpoch,
+            localtime: localtime ?? self.localtime
+        )
+    }
+    
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+    
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+
 // MARK: - Helper functions for creating encoders and decoders
 
 private func newJSONDecoder() -> JSONDecoder {
@@ -273,3 +339,4 @@ private func newJSONEncoder() -> JSONEncoder {
     }
     return encoder
 }
+
