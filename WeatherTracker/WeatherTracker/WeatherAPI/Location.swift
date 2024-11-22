@@ -61,7 +61,7 @@ extension Location {
     }
 }
 
-typealias Locations = [Location]
+public typealias Locations = [Location]
 
 extension Array where Element == Locations.Element {
     init(data: Data) throws {
