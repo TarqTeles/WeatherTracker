@@ -40,7 +40,9 @@ public final class WeatherFetcher {
             case let .failure(error):
                 throw error
         }
-        viewModel.availableLocations = weathers
+        DispatchQueue.main.async { [self, weathers] in
+            viewModel.availableLocations = weathers
+        }
     }
     
     public func getCurrentWeather(for location: Location) async throws -> WeatherViewModel {

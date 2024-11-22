@@ -10,7 +10,7 @@ import SwiftUI
 @Observable public class WeatherViewModel: Identifiable {
     private let model: CurrentWeather
     public let id = UUID()
-    public var locationName: String { "\(model.location.name), \(model.location.country)" }
+    public var locationName: String { "\(model.location.name)" }
     public var temperatureCelsius: String { String(Int(model.current.tempC)) }
     public let icon: Image
 
