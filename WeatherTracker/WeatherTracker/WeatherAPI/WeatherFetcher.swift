@@ -59,7 +59,7 @@ public final class WeatherFetcher {
                 guard response.statusCode == isOK200 else { throw InvalidResponseError() }
                 do {
                     let currentWeather = try CurrentWeather(data: data)
-                    let image = Image(systemName: "photo")
+                    let image = try await getIcon(for: currentWeather.current.condition)
                     print("preparing viewModel for \(currentWeather.location.name)")
                     return WeatherViewModel(currentWeather: currentWeather, icon: image)
                 } catch {
@@ -71,5 +71,27 @@ public final class WeatherFetcher {
         }
     }
     
+    private func getIcon(for condition: Condition) async throws -> Image {
+        if let fetchURL = URL(string: "https:" + condition.icon) {
+            let result = await client.get(from: fetchURL)
+            
+            switch result {
+                case let .success((data, response)):
+                    guard response.statusCode == isOK200 else { throw InvalidResponseError() }
+                    if let uiImg = UIImage(data: data) {
+                        return Image(uiImage: uiImg)
+                    } else {
+                        return missingIcon
+                    }
+                case let .failure(error):
+                    throw error
+            }
+
+        } else {
+            return missingIcon
+        }
+    }
+    
     private let isOK200 = 200
+    private let missingIcon = Image(systemName: "photo")
 }
