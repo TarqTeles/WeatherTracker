@@ -10,13 +10,19 @@ import SwiftUI
 struct ContentView: View {
     @Bindable var main: MainViewModel
     
-    
     private let lightGray = Color(red: 0.9, green: 0.9, blue: 0.9)
 
     var body: some View {
         NavigationStack {
             VStack {
-                if let current = main.currentWeather {
+                if main.searchString.isEmpty {
+                    Text("No City Selected")
+                        .font(.headline)
+                        .padding(.bottom)
+                    
+                    Text("Please Search for a City")
+
+                } else if let current = main.currentWeather {
                     VStack {
                         current.icon
                             .resizable()
@@ -24,16 +30,18 @@ struct ContentView: View {
                             .frame(width: 173.0, height: 173.0, alignment: .center)
                         
                         Text(current.locationName)
-                            .font(.headline)
+                            .font(.title3)
+                            .fontWeight(.semibold)
                             .padding(.bottom, 2.0)
                         
                         Text(current.temperatureCelsius)
                             .font(.largeTitle)
                             .fontWeight(.semibold)
                             .scaleEffect(1.5)
-                            .padding(.leading)
+                            .padding(.bottom)
 
-
+                        CityDetails(weather: current)
+                        
                         Spacer()
                     }
                     .padding(.top, 50.0)
@@ -61,7 +69,10 @@ struct ContentView: View {
                                     .frame(width: 123.0, height: 123.0, alignment: .center)
                                     .padding(.trailing)
                             }
-                            .onTapGesture(perform: { main.currentWeather = location })
+                            .onTapGesture(perform: {
+                                main.currentWeather = location
+                                main.setSelectedCity?(location.locationName)
+                            })
                         }
                         .listRowBackground(lightGray)
                     }
@@ -69,7 +80,19 @@ struct ContentView: View {
                 }
             }
             .animation(.easeInOut, value: main.currentWeather == nil)
-            .searchable(text: $main.seachString, placement: .toolbar, prompt: "Search locations")
+            .animation(.bouncy(duration: 2.0, extraBounce: 0.25), value: main.availableLocations.count)
+            .searchable(text: $main.searchString, placement: .toolbar, prompt: "Search locations")
+            .onChange(of: main.searchString, { _, new in
+                if new.count >= 3 {
+                    Task {
+                        await main.getLocationsFor?(new)
+                    }
+                } else if new.isEmpty {
+                    main.availableLocations = []
+                    main.currentWeather = nil
+                    main.setSelectedCity?("")
+                }
+            })
         }
     }
 }

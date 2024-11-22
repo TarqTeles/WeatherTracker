@@ -11,7 +11,10 @@ import SwiftUI
     private let model: CurrentWeather
     public let id = UUID()
     public var locationName: String { "\(model.location.name)" }
-    public var temperatureCelsius: String { String(Int(model.current.tempC)) }
+    public var temperatureCelsius: String { String(Int(model.current.tempC)) + "º" }
+    public var humidity: String { String(Int(model.current.humidity)) + "%" }
+    public var UV: String { String(Int(model.current.uv)) }
+    public var feelsLike: String { String(Int(model.current.feelslikeC)) + "º" }
     public let icon: Image
 
     init(currentWeather: CurrentWeather, icon: Image) {
