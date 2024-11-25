@@ -105,5 +105,5 @@ public final class WeatherFetcher {
     }
     
     private let isOK200 = 200
-    private let missingIcon = Image(systemName: "photo")
+    private let missingIcon = Samples.missingIconImage
 }
