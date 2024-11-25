@@ -29,8 +29,13 @@ struct WeatherTrackerApp: App {
             ContentView(main: main)
                 .task {
                     if selectedCityName != "" {
-                        main.searchString = selectedCityName
-                        main.currentWeather = try? await fetcher.getCurrentWeather(for: selectedCityName)
+                        do {
+                            main.currentWeather = try await fetcher.getCurrentWeather(for: selectedCityName)
+                            main.searchString = selectedCityName
+                            main.lastErrorMessage = nil
+                        } catch {
+                            main.lastErrorMessage = error.localizedDescription
+                        }
                     }
                 }
         }
@@ -41,6 +46,11 @@ struct WeatherTrackerApp: App {
     }
     
     private func refreshLocations(for str: String) async {
-        try? await fetcher.getLocations(for: str)
+        do {
+            try await fetcher.getLocations(for: str)
+            main.lastErrorMessage = nil
+        } catch {
+            main.lastErrorMessage = error.localizedDescription
+        }
     }
 }

@@ -16,6 +16,8 @@ struct ContentView: View {
         NavigationStack {
             VStack {
                 if main.searchString.isEmpty {
+                    Spacer()
+                    
                     Text("No City Selected")
                         .font(.headline)
                         .padding(.bottom)
@@ -78,6 +80,17 @@ struct ContentView: View {
                     }
                     .listRowSpacing(20.0)
                 }
+                
+                Spacer()
+                if let errMsg = main.lastErrorMessage {
+                    ZStack {
+                        Color.red
+                            .frame(height: 100.0)
+                        
+                        Text(errMsg)
+                            .foregroundStyle(Color.white)
+                    }
+                }
             }
             .animation(.easeInOut, value: main.currentWeather == nil)
             .animation(.bouncy(duration: 2.0, extraBounce: 0.25), value: main.availableLocations.count)
@@ -100,9 +113,12 @@ struct ContentView: View {
 #Preview {
     @Previewable @State var main = MainViewModel()
     let fetcher = WeatherFetcher(client: URLSessionHTTPClient(session: URLSession(configuration: .ephemeral)), viewModel: main)
+    let searchFor = "Lond"
     
     ContentView(main: main)
         .task {
-            try? await fetcher.getLocations(for: "Lond")
+            try? await fetcher.getLocations(for: searchFor)
+            main.searchString = searchFor
+            main.lastErrorMessage = URLError(.badServerResponse, userInfo: .init()).localizedDescription
         }
 }

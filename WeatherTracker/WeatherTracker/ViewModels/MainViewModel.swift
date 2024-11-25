@@ -11,6 +11,7 @@ import SwiftUI
     var currentWeather: WeatherViewModel?
     var availableLocations: [WeatherViewModel]
     var searchString: String = ""
+    var lastErrorMessage: String?
     
     var getLocationsFor: ((String) async -> Void)?
     var setSelectedCity: ((String) -> Void)?

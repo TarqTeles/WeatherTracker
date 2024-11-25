@@ -27,5 +27,4 @@ struct WeatherTrackerTests {
         
         #expect(testURL.absoluteString == expectedURL)
     }
-    
 }
