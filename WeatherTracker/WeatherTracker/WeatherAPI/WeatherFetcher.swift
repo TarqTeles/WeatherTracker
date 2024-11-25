@@ -11,6 +11,8 @@ import SwiftUI
 public final class WeatherFetcher {
     let client: HTTPClient
     let viewModel: MainViewModel
+    var cachedIcons = [Condition : UIImage]()
+    var iconCalls = 0
 
     init(client: HTTPClient, viewModel: MainViewModel) {
         self.client = client
@@ -59,7 +61,7 @@ public final class WeatherFetcher {
                 guard response.statusCode == isOK200 else { throw InvalidResponseError() }
                 do {
                     let currentWeather = try CurrentWeather(data: data)
-                    let image = try await getIcon(for: currentWeather.current.condition)
+                    let image = try await getIconUsingCacheIfAvailable(for: currentWeather.current.condition)
                     print("preparing viewModel for \(currentWeather.location.name)")
                     return WeatherViewModel(currentWeather: currentWeather, icon: image)
                 } catch {
@@ -71,7 +73,16 @@ public final class WeatherFetcher {
         }
     }
     
-    private func getIcon(for condition: Condition) async throws -> Image {
+    private func getIconUsingCacheIfAvailable(for condition: Condition) async throws -> Image {
+        guard let uiImg = cachedIcons[condition] else {
+            return try await getIconFromServer(for: condition)
+        }
+        iconCalls += 1
+        print("prevented \(iconCalls) icon calls!")
+        return Image(uiImage: uiImg)
+    }
+    
+    private func getIconFromServer(for condition: Condition) async throws -> Image {
         if let fetchURL = URL(string: "https:" + condition.icon) {
             let result = await client.get(from: fetchURL)
             
@@ -79,6 +90,7 @@ public final class WeatherFetcher {
                 case let .success((data, response)):
                     guard response.statusCode == isOK200 else { throw InvalidResponseError() }
                     if let uiImg = UIImage(data: data) {
+                        cachedIcons[condition] = uiImg
                         return Image(uiImage: uiImg)
                     } else {
                         return missingIcon

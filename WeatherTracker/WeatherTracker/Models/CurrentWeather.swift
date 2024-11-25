@@ -212,7 +212,7 @@ extension Current {
 //   task.resume()
 
 // MARK: - Condition
-public struct Condition: Codable {
+public struct Condition: Codable, Hashable {
     let text, icon: String
     let code: Int
 }
