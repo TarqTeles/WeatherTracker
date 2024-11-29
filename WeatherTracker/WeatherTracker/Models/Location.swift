@@ -10,10 +10,7 @@
 import Foundation
 
 public struct Location: Codable {
-    let id: Int
     let name, region, country: String
-    let lat, lon: Double
-    let url: String
 }
 
 extension Location {
@@ -30,26 +27,6 @@ extension Location {
     
     init(fromURL url: URL) throws {
         try self.init(data: try Data(contentsOf: url))
-    }
-    
-    func with(
-        id: Int? = nil,
-        name: String? = nil,
-        region: String? = nil,
-        country: String? = nil,
-        lat: Double? = nil,
-        lon: Double? = nil,
-        url: String? = nil
-    ) -> Location {
-        return Location(
-            id: id ?? self.id,
-            name: name ?? self.name,
-            region: region ?? self.region,
-            country: country ?? self.country,
-            lat: lat ?? self.lat,
-            lon: lon ?? self.lon,
-            url: url ?? self.url
-        )
     }
     
     func jsonData() throws -> Data {
