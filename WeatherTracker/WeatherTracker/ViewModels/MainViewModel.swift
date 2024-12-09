@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 @Observable public class MainViewModel {
     var currentWeather: WeatherViewModel?
     var availableLocations: [WeatherViewModel]

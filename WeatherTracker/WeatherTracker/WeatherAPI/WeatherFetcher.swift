@@ -11,8 +11,10 @@ import SwiftUI
 public final class WeatherFetcher {
     let client: HTTPClient
     let viewModel: MainViewModel
-    var cachedIcons = [String : Data]()
-    var iconCalls = 0
+    var iconCache = WeatherIconCache()
+    
+    private var iconCalls = 0
+    private var activeTaskGroup: ThrowingTaskGroup<WeatherViewModel, any Error>?
 
     init(client: HTTPClient, viewModel: MainViewModel) {
         self.client = client
@@ -22,28 +24,36 @@ public final class WeatherFetcher {
     class InvalidResponseError: Error {}
     
     public func getLocations(for loc: String) async throws {
+        await MainActor.run { self.viewModel.availableLocations = [] }
+        activeTaskGroup?.cancelAll()
+        
         let fetchURL = WeatherEndpoint.locations(for: loc)
         
         let result = await client.get(from: fetchURL)
-        var weathers = [WeatherViewModel]()
 
         switch result {
             case let .success((data, response)):
                 guard response.statusCode == isOK200 else { throw InvalidResponseError() }
                 do {
                     let locations = try Locations(data: data)
-                    for location in locations {
-                        let vm = try await getCurrentWeather(for: location)
-                        weathers.append(vm)
+                    try await withThrowingTaskGroup(of: WeatherViewModel.self) { group in
+                        self.activeTaskGroup = group
+                        
+                        for location in locations {
+                            group.addTask {
+                                return try await self.getCurrentWeather(for: location)
+                            }
+                        }
+                        for try await weather in group {
+                            await MainActor.run { self.viewModel.availableLocations.append(weather) }
+                        }
                     }
+                    activeTaskGroup = nil
                 } catch {
                     throw error
                 }
             case let .failure(error):
                 throw error
-        }
-        DispatchQueue.main.async { [self, weathers] in
-            viewModel.availableLocations = weathers
         }
     }
     
@@ -74,47 +84,28 @@ public final class WeatherFetcher {
     }
     
     private func getIconUsingCacheIfAvailable(for condition: Condition) async throws -> Image {
-        guard let imgData = cachedIcons[condition.icon] else {
+        guard let imgData = await iconCache.iconData(for: condition.icon) else {
             return try await getIconFromServer(for: condition)
         }
         iconCalls += 1
         print("prevented \(iconCalls) icon calls!")
-        return imageFrom(data: imgData)
+        return iconCache.imageFrom(data: imgData)
     }
     
     private func getIconFromServer(for condition: Condition) async throws -> Image {
-        if let fetchURL = URL(string: "https:" + condition.icon) {
-            let result = await client.get(from: fetchURL)
-            
-            switch result {
-                case let .success((data, response)):
-                    guard response.statusCode == isOK200 else { throw InvalidResponseError() }
-                    return imageFrom(data: data, cachingTo: condition)
-                case let .failure(error):
-                    throw error
-            }
-
-        } else {
-            return missingIcon
+        guard let fetchURL = URL(string: "https:" + condition.icon) else {
+            return await iconCache.iconImage(for: "")
+        }
+        let result = await client.get(from: fetchURL)
+        
+        switch result {
+            case let .success((data, response)):
+                guard response.statusCode == isOK200 else { throw InvalidResponseError() }
+                return await iconCache.imageFrom(data: data, cachingTo: condition)
+            case let .failure(error):
+                throw error
         }
     }
 
-    private func imageFrom(data: Data, cachingTo condition: Condition) -> Image {
-        let image = imageFrom(data: data)
-        if image != missingIcon {
-            cachedIcons[condition.icon] = data
-        }
-        return image
-    }
-
-    private func imageFrom(data: Data) -> Image {
-        if let uiImg = UIImage(data: data) {
-            return Image(uiImage: uiImg)
-        } else {
-            return missingIcon
-        }
-    }
-    
     private let isOK200 = 200
-    private let missingIcon = Samples.missingIconImage
 }
