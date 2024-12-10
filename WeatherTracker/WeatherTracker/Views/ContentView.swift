@@ -11,6 +11,7 @@ struct ContentView: View {
     @Bindable var main: MainViewModel
     
     private let lightGray = Color(red: 0.9, green: 0.9, blue: 0.9)
+    private let minimumSearchLength = 3
 
     var body: some View {
         NavigationStack {
@@ -96,7 +97,7 @@ struct ContentView: View {
             .animation(.bouncy(duration: 2.0, extraBounce: 0.25), value: main.availableLocations.count)
             .searchable(text: $main.searchString, placement: .toolbar, prompt: "Search locations")
             .onChange(of: main.searchString, { _, new in
-                if new.count >= 3 {
+                if new.count >= minimumSearchLength {
                     Task {
                         await main.getLocationsFor?(new)
                     }

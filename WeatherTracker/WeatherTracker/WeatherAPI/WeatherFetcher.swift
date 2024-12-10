@@ -13,7 +13,6 @@ public final class WeatherFetcher {
     let viewModel: MainViewModel
     var iconCache = WeatherIconCache()
     
-    private var iconCalls = 0
     private var activeTaskGroup: ThrowingTaskGroup<WeatherViewModel, any Error>?
 
     init(client: HTTPClient, viewModel: MainViewModel) {
@@ -22,7 +21,8 @@ public final class WeatherFetcher {
     }
     
     class InvalidResponseError: Error {}
-    
+    class FetchingCancelledError: Error {}
+
     public func getLocations(for loc: String) async throws {
         await MainActor.run { self.viewModel.availableLocations = [] }
         activeTaskGroup?.cancelAll()
@@ -40,6 +40,7 @@ public final class WeatherFetcher {
                         self.activeTaskGroup = group
                         
                         for location in locations {
+                            guard !group.isCancelled else { break }
                             group.addTask {
                                 return try await self.getCurrentWeather(for: location)
                             }
@@ -62,6 +63,7 @@ public final class WeatherFetcher {
     }
     
     public func getCurrentWeather(for loc: String) async throws -> WeatherViewModel {
+        guard !Task.isCancelled else { throw FetchingCancelledError() }
         let fetchURL = WeatherEndpoint.currentWeather(for: loc)
         
         let result = await client.get(from: fetchURL)
@@ -84,12 +86,10 @@ public final class WeatherFetcher {
     }
     
     private func getIconUsingCacheIfAvailable(for condition: Condition) async throws -> Image {
-        guard let imgData = await iconCache.iconData(for: condition.icon) else {
+        guard let img = await iconCache.cachedIconImage(for: condition.icon) else {
             return try await getIconFromServer(for: condition)
         }
-        iconCalls += 1
-        print("prevented \(iconCalls) icon calls!")
-        return iconCache.imageFrom(data: imgData)
+        return img
     }
     
     private func getIconFromServer(for condition: Condition) async throws -> Image {

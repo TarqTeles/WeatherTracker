@@ -11,12 +11,13 @@ actor WeatherIconCache {
     private var cachedIcons = [String : Data]()
     private let missingIcon = Samples.missingIconImage
 
-    func iconData(for str: String) -> Data? {
-        cachedIcons[str]
+    func iconImage(for str: String) -> Image {
+        guard let image = cachedIconImage(for: str) else { return missingIcon }
+        return image
     }
     
-    func iconImage(for str: String) -> Image {
-        guard let data = cachedIcons[str]  else { return missingIcon }
+    func cachedIconImage(for str: String) -> Image? {
+        guard let data = cachedIcons[str]  else { return nil }
         return imageFrom(data: data)
     }
     
