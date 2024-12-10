@@ -11,6 +11,8 @@ import Foundation
 
 public struct Location: Codable {
     let name, region, country: String
+    
+    var description: String { "\(name), \(country) @ \(region)" }
 }
 
 extension Location {

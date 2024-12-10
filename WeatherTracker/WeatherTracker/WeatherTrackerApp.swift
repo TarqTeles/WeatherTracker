@@ -21,7 +21,7 @@ struct WeatherTrackerApp: App {
         fetcher = WeatherFetcher(client: client, viewModel: main)
         
         main.setSelectedCity = setSelectedCity(_:)
-        main.getLocationsFor = refreshLocations(for: )
+        main.getLocationsFor = refreshLocations
     }
     
     var body: some Scene {
@@ -45,11 +45,12 @@ struct WeatherTrackerApp: App {
         selectedCityName = name
     }
     
-    private func refreshLocations(for str: String) async {
+    private func refreshLocations() async {
         do {
-            try await fetcher.getLocations(for: str)
+            try await fetcher.getLocations(for: main.searchString)
             main.lastErrorMessage = nil
         } catch {
+            main.availableLocations = []
             main.lastErrorMessage = error.localizedDescription
         }
     }

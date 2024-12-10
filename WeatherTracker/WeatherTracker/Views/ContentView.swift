@@ -93,18 +93,19 @@ struct ContentView: View {
                     }
                 }
             }
+            .refreshable { await main.getLocationsFor?() }
             .animation(.easeInOut, value: main.currentWeather == nil)
             .animation(.bouncy(duration: 2.0, extraBounce: 0.25), value: main.availableLocations.count)
             .searchable(text: $main.searchString, placement: .toolbar, prompt: "Search locations")
             .onChange(of: main.searchString, { _, new in
+                main.currentWeather = nil
+                main.setSelectedCity?("")
                 if new.count >= minimumSearchLength {
-                    Task {
-                        await main.getLocationsFor?(new)
+                    Task(priority: .background) {
+                        await main.getLocationsFor?()
                     }
                 } else if new.isEmpty {
                     main.availableLocations = []
-                    main.currentWeather = nil
-                    main.setSelectedCity?("")
                 }
             })
         }
