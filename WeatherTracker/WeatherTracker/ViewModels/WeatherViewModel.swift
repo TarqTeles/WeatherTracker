@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@Observable public class WeatherViewModel: Identifiable {
+@Observable public final class WeatherViewModel: Identifiable, Sendable {
     private let model: CurrentWeather
     public let id = UUID()
     public var locationName: String { "\(model.location.name)" }

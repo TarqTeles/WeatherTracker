@@ -8,25 +8,43 @@
 import Foundation
 import SwiftUI
 
-public final class WeatherFetcher {
+actor WeatherResultUpdater {
+    private let viewModel: MainViewModel
+    private var currentSession: UUID?
+    
+    init(viewModel: MainViewModel) {
+        self.viewModel = viewModel
+    }
+    
+    func startNewSession(_ session: UUID) async {
+        currentSession = session
+        await MainActor.run { self.viewModel.availableLocations = [] }
+    }
+    
+    func addResult(_ weather: WeatherViewModel, to session: UUID) async {
+        guard session == currentSession else { return }
+        await MainActor.run { self.viewModel.availableLocations.append(weather) }
+    }
+}
+
+public final actor WeatherFetcher {
     let client: HTTPClient
-    let viewModel: MainViewModel
-    var iconCache = WeatherIconCache()
+    let updater: WeatherResultUpdater
+    let iconCache = WeatherIconCache()
     
     private var activeTaskGroup: ThrowingTaskGroup<WeatherViewModel, any Error>?
 
     init(client: HTTPClient, viewModel: MainViewModel) {
         self.client = client
-        self.viewModel = viewModel
+        self.updater = .init(viewModel: viewModel)
     }
     
-    class InvalidResponseError: Error {}
+    final class InvalidResponseError: Error {}
 
     public func getLocations(for loc: String) async throws {
         defer { activeTaskGroup = nil }
 
         activeTaskGroup?.cancelAll()
-        await MainActor.run { self.viewModel.availableLocations = [] }
         
         let fetchURL = WeatherEndpoint.locations(for: loc)
         
@@ -40,6 +58,8 @@ public final class WeatherFetcher {
                     try await withThrowingTaskGroup(of: WeatherViewModel.self) { group in
                         self.activeTaskGroup = group
                         var fetchedLocations: Set<String> = []
+                        let sessionId = UUID()
+                        await updater.startNewSession(sessionId)
                         
                         for location in locations {
                             guard !group.isCancelled else { break }
@@ -53,7 +73,7 @@ public final class WeatherFetcher {
                         }
                         for try await weather in group {
                             guard !group.isCancelled else { break }
-                            await MainActor.run { self.viewModel.availableLocations.append(weather) }
+                            await updater.addResult(weather, to: sessionId)
                         }
                     }
                 } catch is CancellationError {

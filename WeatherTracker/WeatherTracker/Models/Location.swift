@@ -9,7 +9,7 @@
 
 import Foundation
 
-public struct Location: Codable {
+public struct Location: Codable, Sendable {
     let name, region, country: String
     
     var description: String { "\(name), \(country) @ \(region)" }

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct CurrentWeather: Codable {
+public struct CurrentWeather: Codable, Sendable {
     let location: Location
     let current: Current
 }
@@ -39,7 +39,7 @@ extension CurrentWeather {
 }
 
 // MARK: - Current
-public struct Current: Codable {
+public struct Current: Codable, Sendable {
     let tempC: Double
     let condition: Condition
     let humidity: Double
@@ -83,7 +83,7 @@ extension Current {
 }
 
 // MARK: - Condition
-public struct Condition: Codable {
+public struct Condition: Codable, Sendable {
     let text, icon: String
     let code: Int
 }
