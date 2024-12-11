@@ -30,4 +30,13 @@ public final class WeatherEndpoint {
         ]
         return baseURL.appending(path: currentWeather).appending(queryItems: query)
     }
+    
+    public static func currentWeather(for id: Int) -> URL {
+        let query: [URLQueryItem] = [
+            URLQueryItem(name: "key", value: apiKey),
+            URLQueryItem(name: "q", value: "id:\(id)"),
+            URLQueryItem(name: "aqi", value: "no")
+        ]
+        return baseURL.appending(path: currentWeather).appending(queryItems: query)
+    }
 }

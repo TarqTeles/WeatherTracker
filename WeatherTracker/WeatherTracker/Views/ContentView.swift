@@ -33,9 +33,17 @@ struct ContentView: View {
                             .frame(width: 173.0, height: 173.0, alignment: .center)
                         
                         Text(current.locationName)
-                            .font(.title3)
+                            .font(.title)
                             .fontWeight(.semibold)
+                            .padding(.bottom, 1.0)
+                        
+                        Text(current.locationRegionAndCountry)
+                            .font(.headline)
+                            .fontWeight(.regular)
+                            .lineLimit(3)
+                            .foregroundStyle(.gray)
                             .padding(.bottom, 2.0)
+                            .padding(.horizontal)
                         
                         Text(current.temperatureCelsius)
                             .font(.largeTitle)
@@ -51,31 +59,38 @@ struct ContentView: View {
                 } else {
                     List {
                         ForEach(main.availableLocations) { location in
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(location.locationName)
-                                        .font(.headline)
-                                        .padding(.bottom, 2.0)
-                                    Text(location.temperatureCelsius)
-                                        .font(.largeTitle)
-                                        .fontWeight(.semibold)
-                                        .scaleEffect(1.5)
-                                        .padding(.leading)
-                                }
-                                .padding(.leading)
-                                
-                                Spacer()
-                                
-                                location.icon
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 123.0, height: 123.0, alignment: .center)
-                                    .padding(.trailing)
-                            }
-                            .onTapGesture(perform: {
+                            Button(action: {
                                 main.currentWeather = location
-                                main.setSelectedCity?(location.locationName)
-                            })
+                                main.setSelectedCity?(location.city)
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        Text(location.locationName)
+                                            .font(.headline)
+                                        
+                                        Text(location.locationRegion)
+                                            .font(.subheadline)
+                                            .fontWeight(.thin)
+                                            .padding(.bottom, 2.0)
+                                        
+                                        Text(location.temperatureCelsius)
+                                            .font(.largeTitle)
+                                            .fontWeight(.semibold)
+                                            .scaleEffect(1.5)
+                                            .padding(.leading)
+                                    }
+                                    .padding(.leading)
+                                    
+                                    Spacer()
+                                    
+                                    location.icon
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 123.0, height: 123.0, alignment: .center)
+                                        .padding(.trailing)
+                                }
+                            }
+                            .buttonStyle(.plain)
                         }
                         .listRowBackground(lightGray)
                     }
@@ -99,7 +114,7 @@ struct ContentView: View {
             .searchable(text: $main.searchString, placement: .toolbar, prompt: "Search locations")
             .onChange(of: main.searchString, { _, new in
                 main.currentWeather = nil
-                main.setSelectedCity?("")
+                main.setSelectedCity?(nil)
                 if new.count >= minimumSearchLength {
                     Task(priority: .background) {
                         await main.getLocationsFor?()

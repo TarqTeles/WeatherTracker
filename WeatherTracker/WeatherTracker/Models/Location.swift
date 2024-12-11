@@ -11,6 +11,7 @@ import Foundation
 
 public struct Location: Codable, Sendable {
     let name, region, country: String
+    let id: Int?
     
     var description: String { "\(name), \(country) @ \(region)" }
 }

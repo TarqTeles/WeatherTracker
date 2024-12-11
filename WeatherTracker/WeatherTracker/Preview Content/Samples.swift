@@ -15,6 +15,8 @@ public enum Samples {
     public static let londonRerurn_uv = 0.2
     public static let londonRerurn_feelsLike = 8.9
     
+    public static let londonLocation = Location(name: "London", region: "City of London, Greater London", country: "United Kingdom", id: 2801268)
+
     public static let londonReturnData = londonJSONReturn.data(using: .utf8)!
     public static let londonReturnModel = try! CurrentWeather(data: londonReturnData)
     

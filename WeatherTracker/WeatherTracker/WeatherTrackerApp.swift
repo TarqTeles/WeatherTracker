@@ -13,7 +13,7 @@ struct WeatherTrackerApp: App {
     let main: MainViewModel
     let fetcher: WeatherFetcher
     
-    @AppStorage("selectedCity") var selectedCityName: String = ""
+    @AppStorage("selectedLocation") var selectedLocation: Data = Data()
 
     init() {
         client = URLSessionHTTPClient(session: URLSession(configuration: .ephemeral))
@@ -28,10 +28,10 @@ struct WeatherTrackerApp: App {
         WindowGroup {
             ContentView(main: main)
                 .task {
-                    if selectedCityName != "" {
+                    if let city = try? JSONDecoder().decode(Location.self, from: selectedLocation) {
                         do {
-                            main.currentWeather = try await fetcher.getCurrentWeather(for: selectedCityName)
-                            main.searchString = selectedCityName
+                            main.currentWeather = try await fetcher.getCurrentWeather(for: city)
+                            main.searchString = city.name
                             main.lastErrorMessage = nil
                         } catch {
                             main.lastErrorMessage = error.localizedDescription
@@ -41,8 +41,17 @@ struct WeatherTrackerApp: App {
         }
     }
     
-    private func setSelectedCity(_ name: String) {
-        selectedCityName = name
+    private func setSelectedCity(_ location: Location?) {
+        if let loc = location {
+            do {
+                selectedLocation = try JSONEncoder().encode(loc)
+            } catch {
+                selectedLocation = Data()
+                print("Problem encoding location \(loc.name): \(error.localizedDescription)")
+            }
+        } else {
+            selectedLocation = Data()
+        }
     }
     
     private func refreshLocations() async {

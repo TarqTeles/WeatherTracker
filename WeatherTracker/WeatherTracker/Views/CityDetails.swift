@@ -63,6 +63,6 @@ struct CityDetails: View {
                      
 
 #Preview {
-    let vm = WeatherViewModel(currentWeather: Samples.londonReturnModel, icon: Samples.missingIconImage)
+    let vm = WeatherViewModel(currentWeather: Samples.londonReturnModel, at: Samples.londonLocation, icon: Samples.missingIconImage)
     CityDetails(weather: vm)
 }

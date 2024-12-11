@@ -57,16 +57,11 @@ public final actor WeatherFetcher {
                     let locations = try Locations(data: data)
                     try await withThrowingTaskGroup(of: WeatherViewModel.self) { group in
                         self.activeTaskGroup = group
-                        var fetchedLocations: Set<String> = []
                         let sessionId = UUID()
                         await updater.startNewSession(sessionId)
                         
                         for location in locations {
                             guard !group.isCancelled else { break }
-                            guard !fetchedLocations.contains(location.name) else {
-                                print("Bypassing location: \(location.description) to avoid duplication in UI")
-                                continue }
-                            fetchedLocations.insert(location.name)
                             group.addTask {
                                 return try await self.getCurrentWeather(for: location)
                             }
@@ -87,13 +82,15 @@ public final actor WeatherFetcher {
     }
     
     public func getCurrentWeather(for location: Location) async throws -> WeatherViewModel {
-        try await getCurrentWeather(for: location.name)
-    }
-    
-    public func getCurrentWeather(for loc: String) async throws -> WeatherViewModel {
         guard !Task.isCancelled else { throw CancellationError() }
-        let fetchURL = WeatherEndpoint.currentWeather(for: loc)
         
+        let fetchURL: URL!
+        if let id = location.id {
+            fetchURL = WeatherEndpoint.currentWeather(for: id)
+        } else {
+            fetchURL = WeatherEndpoint.currentWeather(for: location.name)
+        }
+
         let result = await client.get(from: fetchURL)
         
         switch result {
@@ -103,7 +100,7 @@ public final actor WeatherFetcher {
                     let currentWeather = try CurrentWeather(data: data)
                     let image = try await getIconUsingCacheIfAvailable(for: currentWeather.current.condition)
                     print("preparing viewModel for \(currentWeather.location.description)")
-                    return WeatherViewModel(currentWeather: currentWeather, icon: image)
+                    return WeatherViewModel(currentWeather: currentWeather, at: location, icon: image)
                 } catch {
                     print(String(data: data, encoding: .utf8) ?? "problem decoding JSON")
                     throw error
@@ -112,7 +109,7 @@ public final actor WeatherFetcher {
                 throw error
         }
     }
-    
+        
     private func getIconUsingCacheIfAvailable(for condition: Condition) async throws -> Image {
         guard let img = await iconCache.cachedIconImage(for: condition.icon) else {
             return try await getIconFromServer(for: condition)
